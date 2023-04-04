@@ -1,34 +1,29 @@
-import { Component } from "react";
-import { Button, Form } from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Button, Form, Modal } from "react-bootstrap";
 
-class AddComment extends Component {
-  state = {
-    comment: {
-      comment: "",
-      rate: 1,
-      elementId: this.props.asin,
-    },
-  };
+const AddComment = ({ asin }) => {
+  const [comment, setComment] = useState({
+    comment: "",
+    rate: 1,
+    elementId: asin,
+  });
+  const [showModal, setShowModal] = useState(false);
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.asin !== this.props.asin) {
-      this.setState({
-        comment: {
-          ...this.state.comment,
-          elementId: this.props.asin,
-        },
-      });
-    }
-  }
+  useEffect(() => {
+    setComment((prevComment) => ({
+      ...prevComment,
+      elementId: asin,
+    }));
+  }, [asin]);
 
-  sendComment = async (e) => {
+  const sendComment = async (e) => {
     e.preventDefault();
     try {
       let response = await fetch(
         "https://striveschool-api.herokuapp.com/api/comments",
         {
           method: "POST",
-          body: JSON.stringify(this.state.comment),
+          body: JSON.stringify(comment),
           headers: {
             "Content-type": "application/json",
             Authorization:
@@ -37,71 +32,80 @@ class AddComment extends Component {
         }
       );
       if (response.ok) {
-        alert("Comment was sent!");
-        this.setState({
-          comment: {
-            comment: "",
-            rate: 1,
-            elementId: this.props.asin,
-          },
+        alert("Recensione aggiunta!");
+        setComment({
+          comment: "",
+          rate: 1,
+          elementId: asin,
         });
+        setShowModal(false);
+        //  per navigare all'URL corrente
+        window.history.replaceState(
+          null,
+          null,
+          window.location.pathname + window.location.search
+        );
       } else {
         console.log("error");
-        alert("something went wrong");
+        alert("Qualcosa è andato storto");
       }
     } catch (error) {
       console.log("error");
     }
   };
 
-  render() {
-    return (
-      <div className="my-3">
-        <Form onSubmit={this.sendComment}>
-          <Form.Group>
-            <Form.Label>Comment text</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Add comment here"
-              value={this.state.comment.comment}
-              onChange={(e) =>
-                this.setState({
-                  comment: {
-                    ...this.state.comment,
+  return (
+    <div className="my-3">
+      <Button variant="primary" onClick={() => setShowModal(true)}>
+        Aggiungi recensione
+      </Button>
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Lascia il tuo parere</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={sendComment}>
+            <Form.Group>
+              <Form.Label>Scrivi testo</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="lascia una recensione..."
+                value={comment.comment}
+                onChange={(e) =>
+                  setComment((prevComment) => ({
+                    ...prevComment,
                     comment: e.target.value,
-                  },
-                })
-              }
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Rating</Form.Label>
-            <Form.Control
-              as="select"
-              value={this.state.comment.rate}
-              onChange={(e) =>
-                this.setState({
-                  comment: {
-                    ...this.state.comment,
+                  }))
+                }
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Voto</Form.Label>
+              <Form.Control
+                as="select"
+                value={comment.rate}
+                onChange={(e) =>
+                  setComment((prevComment) => ({
+                    ...prevComment,
                     rate: e.target.value,
-                  },
-                })
-              }
-            >
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
-              <option>4</option>
-              <option>5</option>
-            </Form.Control>
-          </Form.Group>
-          <Button variant="primary" type="submit">
-            Submit
-          </Button>
-        </Form>
-      </div>
-    );
-  }
-}
+                  }))
+                }
+              >
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+              </Form.Control>
+            </Form.Group>
+            <Button variant="primary" type="submit">
+              Aggiungi
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
+    </div>
+  );
+};
 
 export default AddComment;

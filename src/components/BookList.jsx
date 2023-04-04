@@ -1,21 +1,15 @@
+import React, { useState } from "react";
 import SingleBook from "./SingleBook";
 import { Col, Form, Row } from "react-bootstrap";
 import CommentArea from "./CommentArea";
 
-const BookList = () => {
-  // state = {
-  //   searchQuery: "",
-  //   selectedBook: null,
-  // };
-
+const BookList = (props) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selcetedBook, setSelectedBook] = useState(null);
+  const [selectedBook, setSelectedBook] = useState(null);
 
-  const changeSelectedBook = (props) => {
-
-      selectedBook: props._asin,
-  }
-
+  const changeSelectedBook = (asin) => {
+    setSelectedBook(asin);
+  };
 
   return (
     <>
@@ -27,33 +21,29 @@ const BookList = () => {
                 <Form.Label>Search a book</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="Search here"
-                  value={this.state.searchQuery}
-                  onChange={(e) =>
-                    this.setState({ searchQuery: e.target.value })
-                  }
+                  placeholder="Cerca il tuo libro"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </Form.Group>
             </Col>
           </Row>
           <Row>
-            {this.props.books
-              .filter((b) =>
-                b.title.toLowerCase().includes(this.state.searchQuery)
-              )
+            {props.books
+              .filter((b) => b.title.toLowerCase().includes(searchQuery))
               .map((b) => (
                 <Col xs={12} md={4} key={b.asin}>
                   <SingleBook
                     book={b}
-                    selectedBook={this.state.selectedBook}
-                    changeSelectedBook={this.changeSelectedBook}
+                    selectedBook={selectedBook}
+                    changeSelectedBook={changeSelectedBook}
                   />
                 </Col>
               ))}
           </Row>
         </Col>
         <Col md={4}>
-          <CommentArea asin={this.state.selectedBook} />
+          <CommentArea asin={selectedBook} />
         </Col>
       </Row>
     </>
